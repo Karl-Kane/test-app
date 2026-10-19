@@ -24,7 +24,23 @@ function categoryOf(match: Match): Exclude<MatchFilter, 'all'> | null {
   }
 }
 
-export function filterMatches(matches: Match[], filter: MatchFilter): Match[] {
-  if (filter === 'all') return matches;
-  return matches.filter((match) => categoryOf(match) === filter);
+// Для поиска: без учёта регистра, пробелов по краям и разницы «ё»/«е».
+function normalize(text: string): string {
+  return text.trim().toLowerCase().replace(/ё/g, 'е');
+}
+
+function matchesQuery(match: Match, query: string): boolean {
+  return (
+    normalize(match.home.name).includes(query) || normalize(match.away.name).includes(query)
+  );
+}
+
+// Фильтр по вкладке и поиск по названию клуба (хозяева или гости).
+export function filterMatches(matches: Match[], filter: MatchFilter, query = ''): Match[] {
+  const normalizedQuery = normalize(query);
+  return matches.filter(
+    (match) =>
+      (filter === 'all' || categoryOf(match) === filter) &&
+      (normalizedQuery === '' || matchesQuery(match, normalizedQuery)),
+  );
 }

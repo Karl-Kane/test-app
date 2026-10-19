@@ -1,5 +1,13 @@
 import { useMemo, useState } from 'react';
-import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  FlatList,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { FilterTabs } from '../components/FilterTabs';
 import { MatchCard } from '../components/MatchCard';
 import { UpdatedAgo } from '../components/UpdatedAgo';
@@ -12,10 +20,11 @@ export function MatchesScreen() {
   const { matches, error, isLoading, updatedAt, reload } = useMatches();
   const { favorites, isFavorite, toggle } = useFavorites();
   const [filter, setFilter] = useState<MatchFilter>('all');
+  const [query, setQuery] = useState('');
 
   const visibleMatches = useMemo(
-    () => (matches ? filterMatches(matches, filter) : []),
-    [matches, filter],
+    () => (matches ? filterMatches(matches, filter, query) : []),
+    [matches, filter, query],
   );
   // Обновление — это загрузка, когда список уже есть на экране.
   const isRefreshing = isLoading && matches !== null;
@@ -48,6 +57,16 @@ export function MatchesScreen() {
       ) : (
         <>
           {updatedAt && <UpdatedAgo since={updatedAt} />}
+          <TextInput
+            value={query}
+            onChangeText={setQuery}
+            placeholder="Поиск по названию клуба"
+            placeholderTextColor="#9ca3af"
+            style={styles.search}
+            autoCorrect={false}
+            clearButtonMode="while-editing"
+            accessibilityLabel="Поиск по названию клуба"
+          />
           <FilterTabs value={filter} onChange={setFilter} />
           {/* Повторная загрузка не удалась — показываем старый список и ошибку над ним. */}
           {error && !isLoading && <ErrorView message={error} onRetry={reload} compact />}
@@ -66,7 +85,11 @@ export function MatchesScreen() {
             ListEmptyComponent={
               <View style={styles.center}>
                 <Text style={styles.emptyText}>
-                  {matches.length === 0 ? 'Матчей пока нет' : 'В этой категории матчей нет'}
+                  {matches.length === 0
+                    ? 'Матчей пока нет'
+                    : query.trim()
+                      ? 'Ничего не найдено'
+                      : 'В этой категории матчей нет'}
                 </Text>
               </View>
             }
@@ -109,6 +132,14 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: '700',
+  },
+  search: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    fontSize: 15,
   },
   list: {
     gap: 8,
