@@ -1,13 +1,16 @@
 import { StyleSheet, Text, View } from 'react-native';
 import type { Match } from '../types';
 import { formatStartsAt, formatStatus } from '../utils/format';
+import { FavoriteButton } from './FavoriteButton';
 
 type Props = {
   match: Match;
+  isFavorite: boolean;
+  onToggleFavorite: (id: string) => void;
 };
 
-// Карточка матча: команды, счёт (если есть), дата начала и статус.
-export function MatchCard({ match }: Props) {
+// Карточка матча: команды, счёт (если есть), дата начала, статус и звёздочка.
+export function MatchCard({ match, isFavorite, onToggleFavorite }: Props) {
   const { home, away, score, status } = match;
   const isLive = status === 'live';
 
@@ -15,7 +18,10 @@ export function MatchCard({ match }: Props) {
     <View style={styles.card}>
       <View style={styles.header}>
         <Text style={styles.date}>{formatStartsAt(match.startsAt)}</Text>
-        <Text style={[styles.status, isLive && styles.statusLive]}>{formatStatus(match)}</Text>
+        <View style={styles.headerRight}>
+          <Text style={[styles.status, isLive && styles.statusLive]}>{formatStatus(match)}</Text>
+          <FavoriteButton active={isFavorite} onPress={() => onToggleFavorite(match.id)} />
+        </View>
       </View>
 
       <View style={styles.teams}>
@@ -43,6 +49,12 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 8,
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 8,
   },
   date: {

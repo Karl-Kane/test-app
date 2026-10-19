@@ -3,12 +3,14 @@ import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from '
 import { FilterTabs } from '../components/FilterTabs';
 import { MatchCard } from '../components/MatchCard';
 import { UpdatedAgo } from '../components/UpdatedAgo';
+import { useFavorites } from '../hooks/useFavorites';
 import { useMatches } from '../hooks/useMatches';
 import { filterMatches, type MatchFilter } from '../utils/filter';
 
 // Экран «Матчи тура» — задание в README.md, часть 1.
 export function MatchesScreen() {
   const { matches, error, isLoading, updatedAt, reload } = useMatches();
+  const { favorites, isFavorite, toggle } = useFavorites();
   const [filter, setFilter] = useState<MatchFilter>('all');
 
   const visibleMatches = useMemo(
@@ -52,7 +54,11 @@ export function MatchesScreen() {
           <FlatList
             data={visibleMatches}
             keyExtractor={(match) => match.id}
-            renderItem={({ item }) => <MatchCard match={item} />}
+            renderItem={({ item }) => (
+              <MatchCard match={item} isFavorite={isFavorite(item.id)} onToggleFavorite={toggle} />
+            )}
+            // FlatList перерисовывает строки только при смене data/extraData.
+            extraData={favorites}
             contentContainerStyle={styles.list}
             // Pull-to-refresh на телефоне; в браузере — кнопка «Обновить».
             refreshing={isRefreshing}
